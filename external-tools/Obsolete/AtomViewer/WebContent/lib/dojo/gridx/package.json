@@ -19,7 +19,7 @@
   "dependencies": {
     "dojo": "1.16.5",
     "dijit": "1.13.8",
-    "dojox": "1.11.10"
+    "dojox": "1.17.3"
   },
   "main": "./Grid",
   "icon": " "
