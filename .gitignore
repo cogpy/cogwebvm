@@ -152,3 +152,4 @@ Makefile
 *.swp
 *.swo
 *~
+test-build/
