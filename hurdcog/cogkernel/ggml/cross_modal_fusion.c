@@ -1,3 +1,8 @@
+// Define _POSIX_C_SOURCE for clock_gettime
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
+
 /**
  * Cross-Modal Cognitive Fusion Kernel - Implementation
  * 
@@ -9,13 +14,13 @@
  */
 
 #include "cross_modal_fusion.h"
-#include "cognitive_tensor_ops.c"
-#include "symbolic_reasoning.c"
-#include "attention_kernels.c"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
+
+// Forward declarations of external functions
+extern void cognitive_tensor_destroy(cognitive_tensor_t* tensor);
 
 // Internal helper functions
 static uint64_t get_time_ns(void) {
@@ -448,6 +453,8 @@ fusion_result_t fusion_unified_process(
             
         case FUSION_STRATEGY_HIERARCHICAL:
         case FUSION_STRATEGY_ADAPTIVE:
+        case FUSION_STRATEGY_COUNT:
+        default:
             // Hierarchical depth-wise fusion
             memory_result = cognitive_convolution(input, context->memory_state, config);
             reasoning_result = symbolic_activation(input, config);
