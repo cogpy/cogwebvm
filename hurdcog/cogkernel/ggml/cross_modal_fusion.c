@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>  // For getpid()
 
 // Forward declarations of external functions
 extern void cognitive_tensor_destroy(cognitive_tensor_t* tensor);
@@ -66,6 +67,10 @@ cross_modal_fusion_context_t* fusion_context_init(
         (cross_modal_fusion_context_t*)calloc(1, sizeof(cross_modal_fusion_context_t));
     
     if (!context) return NULL;
+    
+    // Initialize random number generator for evolutionary operations
+    // TODO: Consider using cryptographically secure RNG for production
+    srand((unsigned int)time(NULL) ^ (unsigned int)getpid());
     
     // Initialize fusion parameters
     context->strategy = strategy;
@@ -217,14 +222,16 @@ feedback_loop_result_t fusion_pln_moses_feedback(
         memcpy(evolved_data, current_program->data, program_size);
         
         // Apply mutations based on reasoning confidence
-        // (simplified for demonstration)
+        // NOTE: Using rand() for demonstration. Production systems should use
+        // cryptographically secure RNG or more sophisticated mutation operators
         float* program_floats = (float*)evolved_data;
         size_t float_count = program_size / sizeof(float);
         
         for (size_t i = 0; i < float_count; i++) {
             // Higher confidence = smaller mutations
             float mutation_rate = 0.1f * (1.0f - reasoning_confidence);
-            program_floats[i] *= (1.0f + mutation_rate * ((float)rand() / RAND_MAX - 0.5f));
+            float random_delta = (float)rand() / RAND_MAX - 0.5f;
+            program_floats[i] *= (1.0f + mutation_rate * random_delta);
         }
         
         result.evolved_program = create_cognitive_tensor(
@@ -370,6 +377,8 @@ cognitive_result_t fusion_evolve_reasoning_strategy(
         memcpy(evolved_genome, strategy_genome->data, genome_size);
         
         // Apply evolutionary operators
+        // NOTE: Using rand() for demonstration. Production systems should use
+        // more sophisticated evolutionary algorithms with proper diversity maintenance
         float* genome_floats = (float*)evolved_genome;
         float* performance_floats = (float*)performance_data->data;
         size_t float_count = genome_size / sizeof(float);
@@ -382,7 +391,8 @@ cognitive_result_t fusion_evolve_reasoning_strategy(
             
             // Higher fitness = preservation, lower fitness = mutation
             if (fitness < 0.5f) {
-                genome_floats[i] += (float)rand() / RAND_MAX * 0.2f - 0.1f;
+                float random_delta = (float)rand() / RAND_MAX * 0.2f - 0.1f;
+                genome_floats[i] += random_delta;
             }
         }
         
@@ -505,7 +515,14 @@ fusion_result_t fusion_unified_process(
     }
     
     result.subsystems_converged = converged;
-    result.confidence_score = total_confidence / converged;
+    
+    // Calculate overall confidence with division by zero protection
+    if (converged > 0) {
+        result.confidence_score = total_confidence / converged;
+    } else {
+        // No subsystems converged, use minimum confidence
+        result.confidence_score = 0.1f;
+    }
     result.convergence_achieved = (converged == COGNITIVE_SUBSYSTEM_COUNT);
     
     // Update context statistics
