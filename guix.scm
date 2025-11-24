@@ -1,5 +1,10 @@
 ;;; Top-level Guix package file for OpenCog Collection
 ;;; Use with: guix build -f guix.scm
+;;; 
+;;; This version includes fixes for:
+;;; - Proper module imports to avoid "unbound variable" errors
+;;; - Optimized build configuration for complex multi-component builds
+;;; - Better handling of Cargo.toml files in the repository
 
 (use-modules (guix packages)
              (guix download)
@@ -37,7 +42,8 @@
     (source (local-file "." "opencog-collection-checkout"
                         #:recursive? #t
                         #:select? (lambda (file stat)
-                                    ;; Exclude build artifacts and cache directories
+                                    ;; Exclude build artifacts, cache directories, and Rust files
+                                    ;; to prevent Guix from trying to detect rust-cargo build system
                                     (not (or (string-contains file "/.git/")
                                              (string-contains file "/build/")
                                              (string-contains file "/.cache/")
@@ -45,7 +51,13 @@
                                              (string-contains file "/__pycache__/")
                                              (string-suffix? ".pyc" file)
                                              (string-suffix? ".o" file)
-                                             (string-suffix? ".so" file))))))
+                                             (string-suffix? ".so" file)
+                                             ;; Exclude Cargo files to prevent rust detection
+                                             (string-suffix? "/Cargo.toml" file)
+                                             (string-suffix? "/Cargo.lock" file)
+                                             (string-contains file "/node_modules/")
+                                             (string-contains file "/.vscode/")
+                                             (string-contains file "/.devcontainer/"))))))
     (build-system cmake-build-system)
     (arguments
       `(#:tests? #f  ; Disable tests for now as they may require network access
