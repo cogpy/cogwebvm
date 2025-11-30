@@ -128,6 +128,7 @@ All changes were made to `.github/workflows/occ-build.yml`:
 ```yaml
 # Added new steps around line 1572
 - name: Rebuild and Install AtomSpace Storage
+  # Note: atomspace-storage is optional, so we continue even if it fails
   if: hashFiles('atomspace-storage/CMakeLists.txt') != ''
   run: |
     mkdir -p atomspace-storage/build
@@ -136,7 +137,7 @@ All changes were made to `.github/workflows/occ-build.yml`:
     make ${{ env.MAKEFLAGS }}
     sudo make install
     sudo ldconfig
-  continue-on-error: true
+  continue-on-error: true  # atomspace-storage is optional in some configurations
 
 - name: Rebuild and Install CogServer
   if: hashFiles('cogserver/CMakeLists.txt') != ''

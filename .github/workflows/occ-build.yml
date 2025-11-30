@@ -1573,6 +1573,7 @@ jobs:
         sudo ldconfig
     
     - name: Rebuild and Install AtomSpace Storage
+      # Note: atomspace-storage is optional, so we continue even if it fails
       if: hashFiles('atomspace-storage/CMakeLists.txt') != ''
       run: |
         mkdir -p atomspace-storage/build
