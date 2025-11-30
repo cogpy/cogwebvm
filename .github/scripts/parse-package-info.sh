@@ -26,11 +26,14 @@ if [ ! -f "$UPDATE_SCRIPT" ]; then
     exit 1
 fi
 
+# Read the update script once
+UPDATE_CONTENT=$(cat "$UPDATE_SCRIPT")
+
 # Extract information from the update script
 # Handle both quoted and unquoted values
-REPO_NAME=$(grep '^REPO_NAME=' "$UPDATE_SCRIPT" | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
-DEB_NAME=$(grep '^DEB_NAME=' "$UPDATE_SCRIPT" | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
-VERSION=$(grep '^VERSION=' "$UPDATE_SCRIPT" | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+REPO_NAME=$(echo "$UPDATE_CONTENT" | grep '^REPO_NAME=' | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+DEB_NAME=$(echo "$UPDATE_CONTENT" | grep '^DEB_NAME=' | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
+VERSION=$(echo "$UPDATE_CONTENT" | grep '^VERSION=' | head -1 | cut -d'=' -f2 | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/")
 
 # Validate extracted values
 if [ -z "$REPO_NAME" ] || [ -z "$DEB_NAME" ] || [ -z "$VERSION" ]; then

@@ -46,8 +46,7 @@ for component in "${COMPONENTS[@]}"; do
     fi
     
     # Source the package info safely
-    PARSE_OUTPUT=$("$SCRIPT_DIR/parse-package-info.sh" "$component" 2>&1)
-    if [ $? -ne 0 ]; then
+    if ! PARSE_OUTPUT=$("$SCRIPT_DIR/parse-package-info.sh" "$component" 2>&1); then
         echo "❌ FAILED: Failed to parse package info for $component"
         echo "  $PARSE_OUTPUT"
         FAILED=$((FAILED + 1))
