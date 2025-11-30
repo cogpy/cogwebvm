@@ -179,7 +179,7 @@ jobs:
     - name: Run AtomSpace Tests
       run: |
         cd atomspace/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Print Test Log
@@ -290,7 +290,7 @@ jobs:
       if: hashFiles('atomspace-storage/CMakeLists.txt') != ''
       run: |
         cd atomspace-storage/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Install AtomSpace Storage
@@ -392,7 +392,7 @@ jobs:
       if: hashFiles('atomspace-rocks/CMakeLists.txt') != ''
       run: |
         cd atomspace-rocks/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Install AtomSpace Rocks
@@ -606,7 +606,7 @@ jobs:
       if: hashFiles('atomspace-cog/CMakeLists.txt') != ''
       run: |
         cd atomspace-cog/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Install AtomSpace Cog
@@ -1229,7 +1229,7 @@ jobs:
       if: hashFiles('matrix/CMakeLists.txt') != ''
       run: |
         cd matrix/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Install Matrix
@@ -1519,7 +1519,7 @@ jobs:
       if: hashFiles('learn/CMakeLists.txt') != ''
       run: |
         cd learn/build
-        make check
+        make check ARGS="${{ env.MAKEFLAGS }}"
       continue-on-error: true
     
     - name: Install Learn
