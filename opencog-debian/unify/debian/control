@@ -2,7 +2,7 @@ Source: opencog-unify
 Section: libdevel
 Priority: optional
 Maintainer: Masayuki Hatta <mhatta@debian.org>
-Build-Depends: debhelper (>= 11), cmake, opencog-atomspace
+Build-Depends: debhelper (>= 11), build-essential, cmake, opencog-atomspace
 Standards-Version: 4.6.2
 Homepage: https://opencog.org/
 Vcs-Git: https://github.com/opencog/unify.git
