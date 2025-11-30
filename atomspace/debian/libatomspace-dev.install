@@ -1,0 +1,5 @@
+usr/include/opencog/atomspace/*
+usr/include/opencog/atoms/*
+usr/include/opencog/query/*
+usr/lib/cmake/AtomSpace/*
+usr/lib/pkgconfig/atomspace.pc
