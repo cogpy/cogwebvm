@@ -51,9 +51,9 @@ STAGE_8_PACKAGES=("moses" "asmoses" "agi-bio" "vision")  # Specialized systems
 STAGE_9_PACKAGES=("opencog")  # Meta-package
 
 # AGI-OS specific packages (only if BUILD_AGI_OS=yes)
-AGI_OS_STAGE_0=("cognumach")
-AGI_OS_STAGE_1=("hurdcog")
-AGI_OS_STAGE_2=("agi-os-unified")
+AGI_OS_STAGE_0=("cognumach")  # Microkernel
+AGI_OS_STAGE_10=("hurdcog" "hurdcog-machspace" "hurdcog-cogkernel-core" "hurdcog-occ-bridge")  # HurdCog Layer 1 Core
+AGI_OS_STAGE_13=("agi-os-unified")  # Complete AGI-OS stack
 
 # Statistics
 TOTAL_PACKAGES=0
@@ -218,8 +218,8 @@ if [ "$BUILD_AGI_OS" = "yes" ]; then
     TOTAL_PACKAGES=$((
         TOTAL_PACKAGES +
         ${#AGI_OS_STAGE_0[@]} +
-        ${#AGI_OS_STAGE_1[@]} +
-        ${#AGI_OS_STAGE_2[@]}
+        ${#AGI_OS_STAGE_10[@]} +
+        ${#AGI_OS_STAGE_13[@]}
     ))
 fi
 
@@ -243,9 +243,9 @@ build_stage_parallel "3" "${STAGE_3_PACKAGES[@]}" || log_warn "Some Stage 3 pack
 # Build Stage 4 (Core services) - can be parallel
 build_stage_parallel "4" "${STAGE_4_PACKAGES[@]}" || { log_error "Stage 4 failed"; exit 1; }
 
-# Build AGI-OS Stage 1 (HurdCog) if requested
-if [ "$BUILD_AGI_OS" = "yes" ] && [ ${#AGI_OS_STAGE_1[@]} -gt 0 ]; then
-    build_stage_sequential "AGI-OS-1" "${AGI_OS_STAGE_1[@]}" || log_error "Stage AGI-OS-1 failed"
+# Build Stage 10 (HurdCog Layer 1 Core) if requested - sequential for dependencies
+if [ "$BUILD_AGI_OS" = "yes" ] && [ ${#AGI_OS_STAGE_10[@]} -gt 0 ]; then
+    build_stage_sequential "10" "${AGI_OS_STAGE_10[@]}" || log_error "Stage 10 (HurdCog Core) failed"
 fi
 
 # Build Stage 5 (Cognitive components) - can be parallel
@@ -263,9 +263,9 @@ build_stage_parallel "8" "${STAGE_8_PACKAGES[@]}" || log_warn "Some Stage 8 pack
 # Build Stage 9 (Meta-package)
 build_stage_sequential "9" "${STAGE_9_PACKAGES[@]}" || log_warn "Stage 9 failed"
 
-# Build AGI-OS Stage 2 (Unified) if requested
-if [ "$BUILD_AGI_OS" = "yes" ] && [ ${#AGI_OS_STAGE_2[@]} -gt 0 ]; then
-    build_stage_sequential "AGI-OS-2" "${AGI_OS_STAGE_2[@]}" || log_error "Stage AGI-OS-2 failed"
+# Build Stage 13 (AGI-OS Unified) if requested
+if [ "$BUILD_AGI_OS" = "yes" ] && [ ${#AGI_OS_STAGE_13[@]} -gt 0 ]; then
+    build_stage_sequential "13" "${AGI_OS_STAGE_13[@]}" || log_error "Stage 13 (AGI-OS Unified) failed"
 fi
 
 # Calculate statistics
