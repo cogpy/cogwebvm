@@ -464,6 +464,14 @@ jobs:
           valgrind \
           doxygen
     
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        ls -la /usr/share/pkgconfig/asio.pc || echo "WARNING: asio.pc not found"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
+        pkg-config --cflags asio || echo "WARNING: Could not get Asio cflags"
+    
     - name: Rebuild and Install CogUtil
       run: |
         mkdir -p cogutil/build
@@ -570,6 +578,14 @@ jobs:
           python3-dev \
           valgrind \
           doxygen
+    
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        ls -la /usr/share/pkgconfig/asio.pc || echo "WARNING: asio.pc not found"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
+        pkg-config --cflags asio || echo "WARNING: Could not get Asio cflags"
     
     - name: Rebuild and Install CogUtil
       run: |
@@ -1010,6 +1026,14 @@ jobs:
           python3-dev \
           valgrind \
           doxygen
+    
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        ls -la /usr/share/pkgconfig/asio.pc || echo "WARNING: asio.pc not found"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
+        pkg-config --cflags asio || echo "WARNING: Could not get Asio cflags"
     
     - name: Rebuild and Install CogUtil
       run: |
@@ -1606,6 +1630,14 @@ jobs:
           python3-dev \
           valgrind \
           doxygen
+    
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        ls -la /usr/share/pkgconfig/asio.pc || echo "WARNING: asio.pc not found"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
+        pkg-config --cflags asio || echo "WARNING: Could not get Asio cflags"
     
     - name: Rebuild and Install CogUtil
       run: |
