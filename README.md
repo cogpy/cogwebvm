@@ -53,10 +53,11 @@ sudo apt-get install -y \
 
 **Required Dependencies:**
 - **Octomap** (`liboctomap-dev`, `liboctomap-tools`): Required for the SpaceTime component, which provides 3D spatiotemporal object tracking and representation capabilities.
-- **Boost**: C++ libraries for various utilities
-- **Guile 3.0**: Scheme interpreter for AtomSpace scripting
-- **Python 3 & Cython**: For Python bindings
-- **CMake**: Build system
+- **Boost** (`libboost-all-dev`): C++ libraries providing utilities for threading, filesystem operations, and data structures.
+- **Guile 3.0** (`guile-3.0-dev`): Scheme interpreter for AtomSpace scripting and cognitive reasoning.
+- **Python 3 & Cython** (`python3-dev`, `cython3`): Python bindings for C++ components and high-level API access.
+- **CMake** (`cmake`): Cross-platform build system generator.
+- **Build Essentials** (`build-essential`): Compiler toolchain (gcc, g++, make) for building C++ components.
 
 ---
 
