@@ -320,3 +320,31 @@ Input
 Failed to store memory with error: Resource not found
 
 Now let me run a quick syntax check on the YAML file to ensure it's valid
+
+---
+
+Great! All 4 jobs now have the verification steps. Let me also store some useful information in memory for future reference:
+
+Call to store_memory
+Input
+{
+  "subject": "Asio library installation",
+  "fact": "The Asio library is provided by the libasio-dev package on Ubuntu, which installs header files to /usr/include/asio.hpp and pkg-config files to /usr/share/pkgconfig/asio.pc",
+  "citations": "User input: Problem statement describing Asio library CMake errors; Testing output from local installation of libasio-dev package showing file locations",
+  "reason": "This fact documents the specific file locations for the Asio library on Ubuntu systems. This is important for future debugging of CMake configuration issues with Asio, and for understanding how the FindAsio.cmake module locates the library. The verification steps added to the workflow check these specific paths.",
+  "category": "general"
+}
+Failed to store memory with error: Resource not found
+
+Call to store_memory
+Input
+{
+  "subject": "workflow job dependencies",
+  "fact": "CogServer requires the Asio library and jobs depending on CogServer (build-atomspace-cog, build-attention, build-learn) also need libasio-dev installed",
+  "citations": "cogserver/CMakeLists.txt:98 shows FIND_PACKAGE(Asio REQUIRED); Workflow analysis showing build-cogserver, build-atomspace-cog, build-attention, and build-learn all install libasio-dev",
+  "reason": "This documents the dependency chain for Asio in the OpenCog Collection. When adding new workflow jobs or modifying existing ones that depend on CogServer, developers need to ensure libasio-dev is installed. This fact helps avoid similar CMake configuration errors in the future.",
+  "category": "general"
+}
+Failed to store memory with error: Resource not found
+
+The memory storage failed, but that's okay. Let me create a final summary document of the work completed
