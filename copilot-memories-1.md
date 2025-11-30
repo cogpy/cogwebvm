@@ -110,3 +110,42 @@ Input
 Failed to store memory with error: Resource not found
 
 That's okay - the memory storage may not be available in this context. Let me create one final wrap-up document
+
+---
+
+Perfect! Let me also store important facts about the build dependencies for future reference:
+
+Call to store_memory
+Input
+{
+  "subject": "occ build dependencies",
+  "fact": "The occ-build.yml workflow requires comprehensive dependencies matching cogci.yml: guile-3.0-dev, cython3, python3-nose, python3-dev, valgrind, doxygen are needed for most components.",
+  "citations": ".github/workflows/cogci.yml: lines 159-162, 197-200, 276-279; .github/workflows/occ-build.yml: updated dependencies across 15 build jobs",
+  "reason": "This fact documents the critical dependencies required for successful OCC builds. The cogci workflow serves as the reference implementation that successfully builds all components. When troubleshooting build failures or adding new components to occ-build, developers should ensure these dependencies are present. This prevents repeating the same missing dependency issues that caused the current build failures.",
+  "category": "bootstrap_and_build"
+}
+Failed to store memory with error: Resource not found
+
+Call to store_memory
+Input
+{
+  "subject": "cogserver async io dependencies",
+  "fact": "CogServer and related networking components (atomspace-cog, attention) require libasio-dev for async I/O support.",
+  "citations": ".github/workflows/cogci.yml: lines 2530-2534 (cogserver), .github/workflows/occ-build.yml: build-cogserver, build-atomspace-cog, build-attention jobs",
+  "reason": "This is important for building network-enabled components. When adding or modifying jobs that involve CogServer, network storage backends, or attention mechanisms, developers must include libasio-dev to enable asynchronous I/O capabilities. Without this dependency, these components will fail to compile.",
+  "category": "bootstrap_and_build"
+}
+Failed to store memory with error: Resource not found
+
+Call to store_memory
+Input
+{
+  "subject": "python bindings build requirements",
+  "fact": "AtomSpace and most OCC components with Python bindings require cython3, python3-dev, and python3-nose for successful compilation and testing.",
+  "citations": ".github/workflows/cogci.yml: lines 197-200 (atomspace), lines 282-285 (atomspace-rocks); .github/workflows/occ-build.yml: build-atomspace and 13 other jobs",
+  "reason": "Python bindings are critical for the OpenCog ecosystem as they provide the primary interface for many tools and applications. When building components with Python interfaces, these three packages work together: cython3 compiles .pyx files to C extensions, python3-dev provides headers for compilation, and python3-nose runs Python tests. Missing any of these will cause Python binding compilation to fail, breaking integration with Python-based tools and applications.",
+  "category": "bootstrap_and_build"
+}
+Failed to store memory with error: Resource not found
+
+Now let me create a final summary document to explain what was done
