@@ -357,6 +357,12 @@ jobs:
           valgrind \
           patchelf
     
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
+    
     - name: Download Previous Packages
       uses: actions/download-artifact@v4
       with:
@@ -424,6 +430,12 @@ jobs:
           python3-nose \
           valgrind \
           patchelf
+    
+    - name: Verify Asio Installation
+      run: |
+        echo "Checking for Asio installation..."
+        ls -la /usr/include/asio.hpp || echo "WARNING: asio.hpp not found in /usr/include"
+        pkg-config --modversion asio || echo "WARNING: Asio not found via pkg-config"
     
     - name: Download Previous Packages
       uses: actions/download-artifact@v4
