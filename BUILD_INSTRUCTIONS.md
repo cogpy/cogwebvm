@@ -29,8 +29,11 @@ sudo apt-get install -y \
     libboost-all-dev \
     cxxtest \
     binutils-dev \
-    libiberty-dev
+    libiberty-dev \
+    libasio-dev
 ```
+
+**Note**: `libasio-dev` is required for building CogServer and its network communication components.
 
 ### Optional Dependencies
 
@@ -260,6 +263,23 @@ sudo ldconfig
 ```bash
 sudo apt-get install guile-3.0 guile-3.0-dev
 ```
+
+### Asio Library Not Found
+
+**Error**: `Could NOT find Asio (missing: Asio_INCLUDE_DIR)` or `Asio_VERSION: 0.0.0`
+
+**Solution**:
+```bash
+sudo apt-get update
+sudo apt-get install libasio-dev
+```
+
+Alternatively, if Asio is installed in a custom location:
+```bash
+cmake .. -DAsio_INCLUDE_DIR=/path/to/asio/include
+```
+
+**Note**: The Asio library is required for building CogServer and components that depend on it (AtomSpace-Cog, Attention, Learn). It provides asynchronous I/O capabilities for network communication.
 
 ### Missing CMakeLists.txt in lib/
 

@@ -1361,6 +1361,7 @@ jobs:
           libboost-system-dev \
           libboost-thread-dev \
           guile-3.0-dev \
+          libasio-dev \
           cython3 \
           python3-nose \
           python3-dev \
@@ -1478,6 +1479,7 @@ jobs:
           libboost-system-dev \
           libboost-thread-dev \
           guile-3.0-dev \
+          libasio-dev \
           cython3 \
           python3-nose \
           python3-dev \
