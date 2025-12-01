@@ -387,3 +387,42 @@ Input
 Failed to store memory with error: Resource not found
 
 Let me finalize the work with a final progress report
+
+---
+
+Perfect! Let me store some useful memories about this repository:
+
+Call to store_memory
+Input
+{
+  "subject": "Debian package dependencies",
+  "fact": "All OpenCog packages require libboost-date-time-dev and libboost-serialization-dev for successful builds",
+  "citations": "opencog-debian/cogutil/debian/control:5, opencog-debian/atomspace/debian/control:5, opencog-debian/ure/debian/control:5, and others",
+  "reason": "This fact will be helpful for future maintenance of the GitHub Actions workflows and when adding new package builds. The Build-Depends in debian/control files must match the packages installed in the workflow's \"Install Prerequisites\" step to avoid build failures. Remembering this dependency pattern prevents similar issues in the future.",
+  "category": "general"
+}
+Failed to store memory with error: Resource not found
+
+Call to store_memory
+Input
+{
+  "subject": "Debian workflow structure",
+  "fact": "The debian-packages.yml workflow builds 10 packages in dependency order: cogutil, atomspace, unify, ure, cogserver, attention, moses, asmoses, miner, pln",
+  "citations": ".github/workflows/debian-packages.yml:27-739",
+  "reason": "Understanding the build order and dependencies between packages is crucial for maintaining the workflow. This knowledge helps when debugging build failures or adding new packages, as it shows which packages depend on others and must be built in sequence. This will be useful for future workflow modifications or troubleshooting.",
+  "category": "general"
+}
+Failed to store memory with error: Resource not found
+
+Call to store_memory
+Input
+{
+  "subject": "Package metadata location",
+  "fact": "Debian package metadata and control files are stored in opencog-debian/[package-name]/debian/ directories",
+  "citations": "opencog-debian/cogutil/debian/control, .github/scripts/prepare-package-build.sh:66-67",
+  "reason": "This is important for future maintenance as it shows where to find the canonical list of build dependencies and package metadata. When updating the workflow or adding new packages, developers need to check these debian/control files to ensure all required dependencies are installed. This prevents build failures and saves debugging time.",
+  "category": "general"
+}
+Failed to store memory with error: Resource not found
+
+The memory storage failed, but that's okay. Let me create a final summary of the work completed
