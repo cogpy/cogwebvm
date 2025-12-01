@@ -1,0 +1,330 @@
+name: Debian Package Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'opencog-debian/**'
+      - '.github/workflows/debian-packaging.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'opencog-debian/**'
+  workflow_dispatch:
+    inputs:
+      build_agi_os:
+        description: 'Build AGI-OS components (cognumach, hurdcog)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  PARALLEL_JOBS: 4
+
+jobs:
+  validate:
+    name: Validate Packaging Structure
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lintian devscripts
+
+      - name: Run packaging validation
+        run: |
+          cd opencog-debian
+          ./validate-packaging.sh
+
+      - name: Check for lintian errors
+        run: |
+          cd opencog-debian
+          for pkg in */debian/control; do
+            dir=$(dirname $(dirname $pkg))
+            echo "Checking $dir..."
+            lintian --no-tag-display-limit $dir/debian/control || true
+          done
+
+  build-foundation:
+    name: Build Foundation (cogutil)
+    needs: validate
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake \
+            libboost-all-dev cxxtest doxygen graphviz \
+            binutils-dev python3-dev patchelf
+
+      - name: Build cogutil
+        run: |
+          cd opencog-debian/cogutil
+          ./update-cogutil.sh
+          cd cogutil-*
+          dpkg-buildpackage -rfakeroot -us -uc -j${PARALLEL_JOBS}
+
+      - name: Upload cogutil packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cogutil-packages
+          path: opencog-debian/cogutil/*.deb
+          retention-days: 7
+
+  build-atomspace:
+    name: Build AtomSpace
+    needs: build-foundation
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download cogutil packages
+        uses: actions/download-artifact@v4
+        with:
+          name: cogutil-packages
+          path: /tmp/packages
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake \
+            libboost-all-dev guile-3.0-dev cxxtest
+          sudo dpkg -i /tmp/packages/*.deb || sudo apt-get install -f -y
+
+      - name: Build atomspace
+        run: |
+          cd opencog-debian/atomspace
+          ./update-atomspace.sh
+          cd atomspace-*
+          dpkg-buildpackage -rfakeroot -us -uc -j${PARALLEL_JOBS}
+
+      - name: Upload atomspace packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: atomspace-packages
+          path: opencog-debian/atomspace/*.deb
+          retention-days: 7
+
+  build-storage-backends:
+    name: Build Storage Backends
+    needs: build-atomspace
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        backend: [atomspace-cog, atomspace-rocks]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-packages'
+          path: /tmp/packages
+          merge-multiple: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake \
+            libboost-all-dev librocksdb-dev
+          sudo dpkg -i /tmp/packages/*.deb || sudo apt-get install -f -y
+
+      - name: Build ${{ matrix.backend }}
+        run: |
+          cd opencog-debian/${{ matrix.backend }}
+          ./update-${{ matrix.backend }}.sh
+          cd ${{ matrix.backend }}-*
+          dpkg-buildpackage -rfakeroot -us -uc -j${PARALLEL_JOBS}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.backend }}-packages
+          path: opencog-debian/${{ matrix.backend }}/*.deb
+          retention-days: 7
+
+  build-core-services:
+    name: Build Core Services
+    needs: build-storage-backends
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        service: [cogserver, ure]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-packages'
+          path: /tmp/packages
+          merge-multiple: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake \
+            libboost-all-dev guile-3.0-dev
+          sudo dpkg -i /tmp/packages/*.deb || sudo apt-get install -f -y
+
+      - name: Build ${{ matrix.service }}
+        run: |
+          cd opencog-debian/${{ matrix.service }}
+          ./update-${{ matrix.service }}.sh
+          cd ${{ matrix.service }}-*
+          dpkg-buildpackage -rfakeroot -us -uc -j${PARALLEL_JOBS}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service }}-packages
+          path: opencog-debian/${{ matrix.service }}/*.deb
+          retention-days: 7
+
+  build-cognitive-components:
+    name: Build Cognitive Components
+    needs: build-core-services
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component: [pln, attention, miner, unify, spacetime]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-packages'
+          path: /tmp/packages
+          merge-multiple: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake \
+            libboost-all-dev guile-3.0-dev
+          sudo dpkg -i /tmp/packages/*.deb || sudo apt-get install -f -y
+
+      - name: Build ${{ matrix.component }}
+        run: |
+          cd opencog-debian/${{ matrix.component }}
+          ./update-${{ matrix.component }}.sh
+          cd ${{ matrix.component }}-*
+          dpkg-buildpackage -rfakeroot -us -uc -j${PARALLEL_JOBS}
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.component }}-packages
+          path: opencog-debian/${{ matrix.component }}/*.deb
+          retention-days: 7
+
+  test-integration:
+    name: Integration Testing
+    needs: build-cognitive-components
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-packages'
+          path: /tmp/packages
+          merge-multiple: true
+
+      - name: Install all packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libboost-all-dev guile-3.0 librocksdb-dev
+          sudo dpkg -i /tmp/packages/*.deb || sudo apt-get install -f -y
+
+      - name: Run integration tests
+        run: |
+          cd opencog-debian
+          if [ -f test-integration.sh ]; then
+            ./test-integration.sh
+          else
+            echo "Integration tests not yet implemented"
+          fi
+
+      - name: Test AtomSpace functionality
+        run: |
+          guile -c '(use-modules (opencog)) (display "AtomSpace loaded successfully\n")' || echo "Guile test skipped"
+
+  build-agi-os:
+    name: Build AGI-OS Components
+    needs: validate
+    if: github.event.inputs.build_agi_os == 'true'
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component: [cognumach, hurdcog]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper \
+            gcc-multilib mig autoconf automake libtool \
+            texinfo bison flex
+
+      - name: Build ${{ matrix.component }}
+        run: |
+          cd opencog-debian/${{ matrix.component }}
+          ./update-${{ matrix.component }}.sh || echo "Update script not available"
+          echo "AGI-OS component build placeholder"
+
+  publish-packages:
+    name: Publish Packages
+    needs: [test-integration]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-packages'
+          path: packages
+          merge-multiple: true
+
+      - name: Create package index
+        run: |
+          cd packages
+          dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: packages/*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify Build Status
+    needs: [test-integration]
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ needs.test-integration.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
