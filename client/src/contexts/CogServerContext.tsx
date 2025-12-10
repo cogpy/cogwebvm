@@ -14,8 +14,11 @@ const CogServerContext = createContext<CogServerContextType | undefined>(undefin
 export function CogServerProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<any>(null);
+  const [connectionAttempted, setConnectionAttempted] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const MAX_RECONNECT_ATTEMPTS = 3;
 
   const connect = () => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -36,7 +39,7 @@ export function CogServerProvider({ children }: { children: ReactNode }) {
       ws.onopen = () => {
         console.log("✅ Connected to CogServer");
         setIsConnected(true);
-        toast.success("Connected to CogServer");
+        reconnectAttemptsRef.current = 0; // Reset counter on successful connection
         
         // Clear any reconnect timeout
         if (reconnectTimeoutRef.current) {
@@ -59,15 +62,21 @@ export function CogServerProvider({ children }: { children: ReactNode }) {
         setIsConnected(false);
         wsRef.current = null;
         
-        // Attempt reconnect after 5 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          connect();
-        }, 5000);
+        // Only attempt reconnect if we haven't exceeded max attempts
+        if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttemptsRef.current++;
+          console.log(`Reconnect attempt ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}`);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            connect();
+          }, 5000);
+        } else {
+          console.log("Max reconnect attempts reached. CogServer is unavailable.");
+        }
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        // Don't toast error here to avoid spamming, let onclose handle it
+        console.warn("CogServer WebSocket connection failed (this is normal if CogServer is not running)");
+        // Silently fail - CogServer is optional
       };
 
       wsRef.current = ws;
@@ -95,9 +104,13 @@ export function CogServerProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    connect();
+    // Only attempt connection once on mount
+    if (!connectionAttempted) {
+      setConnectionAttempted(true);
+      connect();
+    }
     return () => disconnect();
-  }, []);
+  }, [connectionAttempted]);
 
   return (
     <CogServerContext.Provider value={{ isConnected, lastMessage, sendMessage, connect, disconnect }}>
