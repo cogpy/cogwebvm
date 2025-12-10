@@ -1,3 +1,4 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusCard, TerminalBlock, DataGrid } from "@/components/ui/CyberComponents";
 import AtomSpaceViz from "@/components/AtomSpaceViz";
@@ -6,6 +7,10 @@ import { useCogServer } from "@/contexts/CogServerContext";
 import { useEffect, useState } from "react";
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const { isConnected, sendMessage, lastMessage } = useCogServer();
   const [atomCount, setAtomCount] = useState<string>("14"); // Default from static test
   

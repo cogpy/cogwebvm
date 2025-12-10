@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Terminal, Activity, Network, Server, Cpu, Database } from "lucide-react";
+import { Terminal, Activity, Network, Server, Cpu, Database, FolderOpen } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,6 +12,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/", label: "OVERVIEW", icon: Activity },
+    { href: "/files", label: "FILE STORAGE", icon: FolderOpen },
     { href: "/python", label: "PYTHON BINDINGS", icon: Terminal },
     { href: "/guile", label: "GUILE SCHEME", icon: Cpu },
     { href: "/cogserver", label: "COGSERVER", icon: Server },
