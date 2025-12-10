@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusCard, TerminalBlock, DataGrid } from "@/components/ui/CyberComponents";
+import AtomSpaceViz from "@/components/AtomSpaceViz";
 import { CheckCircle2, Terminal, Cpu, Network, Database, Layers, RefreshCw } from "lucide-react";
 import { useCogServer } from "@/contexts/CogServerContext";
 import { useEffect, useState } from "react";
@@ -74,6 +75,13 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - System Info */}
           <div className="space-y-6">
+            <div className="cyber-card p-4">
+              <h3 className="font-mono text-sm text-primary uppercase mb-4 flex items-center gap-2">
+                <Network className="w-4 h-4" />
+                ATOMSPACE VISUALIZER
+              </h3>
+              <AtomSpaceViz />
+            </div>
             <DataGrid 
               title="SYSTEM SPECIFICATIONS" 
               data={[
