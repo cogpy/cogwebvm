@@ -1,8 +1,26 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusCard, TerminalBlock, DataGrid } from "@/components/ui/CyberComponents";
-import { CheckCircle2, Terminal, Cpu, Network, Database, Layers } from "lucide-react";
+import { CheckCircle2, Terminal, Cpu, Network, Database, Layers, RefreshCw } from "lucide-react";
+import { useCogServer } from "@/contexts/CogServerContext";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const { isConnected, sendMessage, lastMessage } = useCogServer();
+  const [atomCount, setAtomCount] = useState<string>("14"); // Default from static test
+  
+  // Poll for stats when connected
+  useEffect(() => {
+    if (!isConnected) return;
+    
+    const interval = setInterval(() => {
+      // We can send a command to get stats if available, 
+      // or just rely on the connection status for now
+      // sendMessage({ op: "eval", code: "(count-atoms)" }); 
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isConnected, sendMessage]);
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -40,8 +58,8 @@ export default function Home() {
           />
           <StatusCard 
             title="COGSERVER" 
-            status="pass" 
-            value="PORT 17001" 
+            status={isConnected ? "pass" : "fail"} 
+            value={isConnected ? "ONLINE" : "OFFLINE"} 
             icon={<ServerIcon />} 
           />
           <StatusCard 
