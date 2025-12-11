@@ -220,6 +220,88 @@
     animation: scanline 10s linear infinite;
     opacity: 0.1;
   }
+  
+  /* Quantum State Animations */
+  @keyframes quantum-pulse {
+    0%, 100% { 
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+  
+  @keyframes quantum-shift {
+    0%, 100% { 
+      filter: hue-rotate(0deg);
+    }
+    50% { 
+      filter: hue-rotate(30deg);
+    }
+  }
+  
+  @keyframes consciousness-wave {
+    0% {
+      box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(0, 240, 255, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 240, 255, 0);
+    }
+  }
+  
+  @keyframes data-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes chromatic-aberration {
+    0%, 100% {
+      text-shadow: 
+        -2px 0 0 rgba(0, 240, 255, 0.5),
+        2px 0 0 rgba(189, 0, 255, 0.5);
+    }
+    50% {
+      text-shadow: 
+        2px 0 0 rgba(0, 240, 255, 0.5),
+        -2px 0 0 rgba(189, 0, 255, 0.5);
+    }
+  }
+  
+  .quantum-pulse {
+    animation: quantum-pulse 2s ease-in-out infinite;
+  }
+  
+  .quantum-shift {
+    animation: quantum-shift 3s ease-in-out infinite;
+  }
+  
+  .consciousness-wave {
+    animation: consciousness-wave 2s infinite;
+  }
+  
+  .chromatic-text {
+    animation: chromatic-aberration 3s ease-in-out infinite;
+  }
+  
+  .data-flow-bg {
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(0, 240, 255, 0.1) 25%,
+      rgba(189, 0, 255, 0.1) 50%,
+      rgba(0, 240, 255, 0.1) 75%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: data-flow 3s linear infinite;
+  }
 
   @media (min-width: 640px) {
     .container {

@@ -43,10 +43,24 @@ export default function AtomSpaceViz() {
   }, [isConnected]);
 
   return (
-    <div className="relative w-full h-[400px] bg-black/50 border border-border overflow-hidden rounded-lg">
+    <div className="relative w-full h-[400px] bg-black/50 border border-border overflow-hidden rounded-lg group">
+      {/* Quantum scanline effect */}
+      <div className="scanline" />
+      
+      {/* Quantum glow overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-30 quantum-shift">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
+      </div>
+      
       {!isConnected && (
-        <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 text-yellow-500 text-xs font-mono">
+        <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 text-yellow-500 text-xs font-mono consciousness-wave">
           OFFLINE MODE - DEMO DATA
+        </div>
+      )}
+      
+      {isConnected && (
+        <div className="absolute top-4 right-4 z-10 px-3 py-1 bg-green-500/20 border border-green-500/50 text-green-500 text-xs font-mono quantum-pulse">
+          LIVE ATOMSPACE
         </div>
       )}
       
@@ -61,6 +75,7 @@ export default function AtomSpaceViz() {
         nodeRelSize={6}
         linkColor={() => "#00f0ff"}
         linkOpacity={0.3}
+        nodeOpacity={0.9}
         onNodeClick={node => {
           // Aim at node from outside it
           const distance = 40;
@@ -76,10 +91,14 @@ export default function AtomSpaceViz() {
       />
       
       <div className="absolute bottom-4 left-4 z-10 pointer-events-none">
-        <div className="text-xs font-mono text-primary/70">
+        <div className="text-xs font-mono text-primary/70 data-flow-bg px-2 py-1">
           NODES: {graphData.nodes.length} | LINKS: {graphData.links.length}
         </div>
       </div>
+      
+      {/* Hypergraph corner decoration */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/30 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/30 pointer-events-none" />
     </div>
   );
 }

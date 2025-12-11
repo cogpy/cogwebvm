@@ -36,8 +36,8 @@ export default function Home() {
               <span className="w-2 h-2 bg-primary animate-pulse"></span>
               SYSTEM READY
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold font-mono tracking-tighter text-white mb-2 glitch-text">
-              OPENCOG <span className="text-primary">WEBVM</span>
+            <h1 className="text-4xl md:text-5xl font-bold font-mono tracking-tighter text-white mb-2 glitch-text chromatic-text">
+              OPENCOG <span className="text-primary quantum-pulse">WEBVM</span>
             </h1>
             <p className="text-muted-foreground max-w-xl text-lg">
               Artificial General Intelligence framework successfully deployed and verified in the WebVM environment.
