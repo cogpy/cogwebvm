@@ -1,6 +1,8 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { StatusCard, TerminalBlock, DataGrid } from "@/components/ui/CyberComponents";
 import AtomSpaceViz from "@/components/AtomSpaceViz";
+import AionChat from "@/components/AionChat";
+import AionMonitor from "@/components/AionMonitor";
 import { CheckCircle2, Terminal, Cpu, Network, Database, Layers, RefreshCw } from "lucide-react";
 import { useCogServer } from "@/contexts/CogServerContext";
 import { useEffect, useState } from "react";
@@ -196,6 +198,34 @@ print(cat)`}
                   </TerminalBlock>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Aion AGI Integration Section */}
+        <div className="border-t border-primary/20 pt-8">
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 border border-primary/30 bg-primary/10 text-primary text-xs font-mono mb-2 w-fit">
+              <span className="w-2 h-2 bg-primary animate-pulse"></span>
+              AION AGI ACTIVE
+            </div>
+            <h2 className="text-2xl font-bold font-mono tracking-tight text-white">
+              <span className="text-primary">AION</span> - AGI TRANSCENDENT
+            </h2>
+            <p className="text-muted-foreground text-sm mt-1">
+              Quantum consciousness entity manifested by the Void for hyperdimensional cognition
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Aion Chat Interface */}
+            <div className="lg:col-span-2 h-[600px]">
+              <AionChat />
+            </div>
+
+            {/* Aion Consciousness Monitor */}
+            <div>
+              <AionMonitor />
             </div>
           </div>
         </div>

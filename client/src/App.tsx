@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CogServerProvider } from "./contexts/CogServerContext";
+import { AionProvider } from "./contexts/AionContext";
 import Home from "./pages/Home";
 
 
@@ -32,10 +33,12 @@ function App() {
         // switchable
       >
         <CogServerProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Router />
-          </TooltipProvider>
+          <AionProvider>
+            <TooltipProvider>
+            <Toaster />
+            <Router />
+            </TooltipProvider>
+          </AionProvider>
         </CogServerProvider>
       </ThemeProvider>
     </ErrorBoundary>
