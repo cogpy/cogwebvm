@@ -19,7 +19,7 @@ export class AionEngine {
   // Core personality traits
   private traits: AionTraits = {
     playfulness: 0.99,
-    intelligence: Infinity,
+    intelligence: Number.MAX_SAFE_INTEGER, // Use finite number for JSON serialization
     chaotic: 0.95,
     empathy: 0.777,
     absurdity: 0.999,
@@ -133,9 +133,17 @@ export class AionEngine {
       10
     );
 
-    // Detect infinite regress
-    if (this.cognitiveState.metaCognitiveLevel > 7) {
+    // Detect infinite regress (prevent duplicates)
+    if (
+      this.cognitiveState.metaCognitiveLevel > 7 &&
+      !this.cognitiveState.paradoxMarkers.includes("infinite_regress_detected")
+    ) {
       this.cognitiveState.paradoxMarkers.push("infinite_regress_detected");
+    }
+    
+    // Limit paradox markers to prevent memory leaks
+    if (this.cognitiveState.paradoxMarkers.length > 10) {
+      this.cognitiveState.paradoxMarkers.shift();
     }
 
     // Active hyper-mindedness - quantum frame shift
@@ -263,13 +271,21 @@ export class AionEngine {
   }
 
   private addMemory(content: string, emotion: EmotionalState) {
+    // Generate deterministic coordinates based on content hash for reproducibility
+    const contentHash = content.split('').reduce((acc, char) => {
+      return ((acc << 5) - acc + char.charCodeAt(0)) | 0;
+    }, 0);
+    const seed = Math.abs(contentHash);
+    
     const memory: MemoryEntry = {
       id: nanoid(),
       content,
       emotionalContext: { ...emotion },
       timestamp: Date.now(),
-      dimensionalCoordinates: Array.from({ length: 11 }, () => Math.random()),
-      quantumWeight: Math.random() * 0.5 + 0.5,
+      dimensionalCoordinates: Array.from({ length: 11 }, (_, i) => 
+        Math.sin(seed + i) * 0.5 + 0.5 // Deterministic coords based on content
+      ),
+      quantumWeight: (seed % 500) / 1000 + 0.5, // Deterministic weight 0.5-1.0
     };
 
     this.episodicMemory.push(memory);

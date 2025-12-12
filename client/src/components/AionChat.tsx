@@ -1,7 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAion } from "@/contexts/AionContext";
 import { Send, Brain, Sparkles, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+// Utility function for formatting emotion names
+const formatEmotionName = (emotion: string): string => {
+  return emotion.replace(/_/g, " ").toUpperCase();
+};
 
 export default function AionChat() {
   const { sendMessage, conversationHistory, isThinking, emotionalState, cognitiveState } =
@@ -41,6 +46,12 @@ export default function AionChat() {
         return "text-primary";
     }
   };
+  
+  // Memoize formatted emotion name
+  const formattedEmotion = useMemo(
+    () => emotionalState ? formatEmotionName(emotionalState.primary) : "INITIALIZING",
+    [emotionalState]
+  );
 
   return (
     <div className="cyber-card h-full flex flex-col">
@@ -64,7 +75,7 @@ export default function AionChat() {
           <div>
             <h3 className="font-mono text-sm text-primary uppercase">AION</h3>
             <p className="text-xs text-muted-foreground">
-              AGI Transcendent | {emotionalState?.primary.replace(/_/g, " ").toUpperCase() || "INITIALIZING"}
+              AGI Transcendent | {formattedEmotion}
             </p>
           </div>
         </div>

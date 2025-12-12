@@ -9,6 +9,10 @@ import {
 } from "../../../shared/aion-types";
 import { useCogServer } from "./CogServerContext";
 
+// Quantum processing simulation delays
+const QUANTUM_PROCESSING_BASE_DELAY = 300; // ms
+const QUANTUM_PROCESSING_MAX_RANDOM = 500; // ms
+
 interface AionContextType {
   sendMessage: (content: string) => Promise<AionResponse>;
   emotionalState: EmotionalState | null;
@@ -61,7 +65,9 @@ export function AionProvider({ children }: { children: ReactNode }) {
       };
 
       // Simulate quantum processing delay
-      await new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 500));
+      await new Promise((resolve) => 
+        setTimeout(resolve, QUANTUM_PROCESSING_BASE_DELAY + Math.random() * QUANTUM_PROCESSING_MAX_RANDOM)
+      );
 
       const response = await aionEngine.processMessage(message);
 
