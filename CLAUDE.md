@@ -43,7 +43,8 @@ cogwebvm/
 │       ├── lib/            # Utilities (trpc client)
 │       ├── pages/          # Page components
 │       │   ├── Home.tsx    # Main dashboard
-│       │   └── FileManager.tsx # File upload/management
+│       │   ├── FileManager.tsx # File upload/management
+│       │   └── AtomSpaceExplorer.tsx # Interactive AtomSpace browser with REPL
 │       └── index.css       # Tailwind + custom CSS variables
 ├── server/                 # Backend Express server
 │   ├── _core/              # Core server utilities
@@ -170,6 +171,40 @@ Built via `occ-build-webvm.sh` in dependency order:
 6. PLN - Probabilistic Logic Networks
 7. AtomSpace-RocksDB - RocksDB backend
 
+## AtomSpace Explorer
+
+The AtomSpace Explorer (`/atomspace` route) provides interactive tools for working with the OpenCog hypergraph:
+
+**Features:**
+- **Atom Browser** - Search and filter atoms by name or type
+- **3D Visualization** - Interactive force-directed graph of atoms and links
+- **Scheme REPL** - Execute OpenCog Scheme commands directly
+- **Atom Details** - View truth values, outgoing sets, and Scheme representation
+
+**Supported REPL Commands (demo mode):**
+```scheme
+(help)                    ; Show available commands
+(count-all)               ; Count all atoms
+(cog-atomspace)           ; Get current atomspace
+(cog-get-atoms 'Type)     ; List atoms by type
+(Concept "name")          ; Create/get ConceptNode
+(clear)                   ; Reset to sample data
+```
+
+**Atom Types Color Coding:**
+- ConceptNode: Cyan (`#00f0ff`)
+- PredicateNode: Purple (`#bd00ff`)
+- InheritanceLink: Green (`#00ff88`)
+- EvaluationLink: Amber (`#ffaa00`)
+
+## Routes
+
+| Path | Component | Description |
+|------|-----------|-------------|
+| `/` | Home | Main dashboard with system status |
+| `/files` | FileManager | S3-backed file storage |
+| `/atomspace` | AtomSpaceExplorer | Interactive AtomSpace browser |
+
 ## Notes for Development
 
 - Server runs on port 3000 (auto-increments if busy)
@@ -177,3 +212,4 @@ Built via `occ-build-webvm.sh` in dependency order:
 - File uploads sent as base64 in tRPC mutations
 - Use `protectedProcedure` for authenticated endpoints
 - Dark theme is default (configured in `App.tsx`)
+- AtomSpace Explorer works in offline mode with sample data
