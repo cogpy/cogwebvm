@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { CogServerProvider } from "./contexts/CogServerContext";
 import Home from "./pages/Home";
 import FileManager from "./pages/FileManager";
+import AtomSpaceExplorer from "./pages/AtomSpaceExplorer";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/files"} component={FileManager} />
+      <Route path={"/atomspace"} component={AtomSpaceExplorer} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

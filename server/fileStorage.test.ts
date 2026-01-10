@@ -3,6 +3,12 @@ import { appRouter } from "./routers";
 import type { User } from "../drizzle/schema";
 import type { Request, Response } from "express";
 
+// Check if storage credentials are available
+const hasStorageCredentials = !!(
+  process.env.BUILT_IN_FORGE_API_URL &&
+  process.env.BUILT_IN_FORGE_API_KEY
+);
+
 // Helper to create a caller with mock context
 function createCaller(user: User) {
   return appRouter.createCaller({
@@ -12,7 +18,7 @@ function createCaller(user: User) {
   });
 }
 
-describe("File Storage API", () => {
+describe.skipIf(!hasStorageCredentials)("File Storage API", () => {
   let mockUser: User;
   let caller: ReturnType<typeof createCaller>;
 
