@@ -57,9 +57,13 @@ cogwebvm/
 │   ├── db.ts               # Drizzle database connection
 │   ├── storage.ts          # S3 storage utilities
 │   └── fileDb.ts           # File CRUD operations
-├── shared/                 # Shared types between client/server
+├── shared/                 # Shared types and utilities
 │   ├── const.ts            # Constants (cookie names)
-│   └── types.ts            # Shared TypeScript types
+│   ├── types.ts            # Shared TypeScript types
+│   ├── atomspace.ts        # AtomSpace utilities (atoms, graphs, filtering)
+│   ├── atomspace.test.ts   # AtomSpace utility tests (77 tests)
+│   ├── repl.ts             # Scheme REPL command execution
+│   └── repl.test.ts        # REPL utility tests (35 tests)
 ├── drizzle/                # Database schema and migrations
 │   ├── schema.ts           # Drizzle table definitions
 │   └── migrations/         # SQL migration files
@@ -183,12 +187,23 @@ The AtomSpace Explorer (`/atomspace` route) provides interactive tools for worki
 
 **Supported REPL Commands (demo mode):**
 ```scheme
-(help)                    ; Show available commands
-(count-all)               ; Count all atoms
-(cog-atomspace)           ; Get current atomspace
-(cog-get-atoms 'Type)     ; List atoms by type
+;; Atom Creation
 (Concept "name")          ; Create/get ConceptNode
+(Predicate "name")        ; Create/get PredicateNode
+(Inheritance "A" "B")     ; Create InheritanceLink
+
+;; AtomSpace Queries
+(cog-atomspace)           ; Get current atomspace info
+(cog-get-atoms 'Type)     ; List atoms by type
+(cog-incoming-set "name") ; Get incoming links
+(cog-outgoing-set "name") ; Get outgoing atoms
+(cog-tv "name")           ; Get truth value
+
+;; Utilities
+(count-all)               ; Count all atoms with breakdown
+(display "name")          ; Display atom representation
 (clear)                   ; Reset to sample data
+(help)                    ; Show all commands
 ```
 
 **Atom Types Color Coding:**
@@ -205,6 +220,31 @@ The AtomSpace Explorer (`/atomspace` route) provides interactive tools for worki
 | `/files` | FileManager | S3-backed file storage |
 | `/atomspace` | AtomSpaceExplorer | Interactive AtomSpace browser |
 
+## Shared Utilities
+
+Located in `shared/`:
+
+**atomspace.ts** - Core AtomSpace utilities:
+- `Atom`, `TruthValue`, `GraphData` types
+- `filterAtoms()` - Search and filter atoms
+- `buildGraphData()` - Generate visualization data
+- `atomToScheme()` - Convert atom to Scheme representation
+- `SAMPLE_ATOMS` - Demo data with 14 atoms
+
+**repl.ts** - Scheme REPL implementation:
+- `createReplState()` - Initialize REPL with atoms
+- `executeSchemeCommand()` - Execute Scheme expressions
+- `isValidSchemeExpression()` - Validate input
+
+Usage:
+```typescript
+import { filterAtoms, buildGraphData } from "@shared/atomspace";
+import { createReplState, executeSchemeCommand } from "@shared/repl";
+
+const state = createReplState();
+const result = executeSchemeCommand('(Concept "Cat")', state);
+```
+
 ## Notes for Development
 
 - Server runs on port 3000 (auto-increments if busy)
@@ -213,3 +253,4 @@ The AtomSpace Explorer (`/atomspace` route) provides interactive tools for worki
 - Use `protectedProcedure` for authenticated endpoints
 - Dark theme is default (configured in `App.tsx`)
 - AtomSpace Explorer works in offline mode with sample data
+- 113+ unit tests covering atomspace and REPL utilities

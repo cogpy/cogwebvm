@@ -10,9 +10,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ForceGraph3D from "react-force-graph-3d";
 import {
   Search,
-  Play,
-  Trash2,
-  Plus,
   RefreshCw,
   Terminal,
   Database,
@@ -21,22 +18,28 @@ import {
   ChevronRight,
   Loader2,
   Send,
+  Trash2,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Atom {
-  id: string;
-  type: string;
-  name: string;
-  tv?: { strength: number; confidence: number };
-  outgoing?: string[];
-}
-
-interface GraphData {
-  nodes: { id: string; group: number; val: number; name: string; type: string }[];
-  links: { source: string; target: string; type: string }[];
-}
+// Import shared utilities
+import {
+  Atom,
+  ATOM_TYPE_COLORS,
+  getAtomColor,
+  getAtomTypes,
+  filterAtoms,
+  buildGraphData,
+  atomToScheme,
+  createAtomsMap,
+  SAMPLE_ATOMS,
+} from "@shared/atomspace";
+import {
+  createReplState,
+  executeSchemeCommand,
+  ReplState,
+} from "@shared/repl";
 
 interface ReplHistoryItem {
   type: "input" | "output" | "error";
@@ -44,40 +47,12 @@ interface ReplHistoryItem {
   timestamp: Date;
 }
 
-// Sample atoms for demonstration
-const SAMPLE_ATOMS: Atom[] = [
-  { id: "1", type: "ConceptNode", name: "Animal", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "2", type: "ConceptNode", name: "Mammal", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "3", type: "ConceptNode", name: "Cat", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "4", type: "ConceptNode", name: "Dog", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "5", type: "ConceptNode", name: "Human", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "6", type: "ConceptNode", name: "Socrates", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "7", type: "PredicateNode", name: "is-a", tv: { strength: 1.0, confidence: 1.0 } },
-  { id: "8", type: "PredicateNode", name: "eats", tv: { strength: 1.0, confidence: 1.0 } },
-  { id: "9", type: "ConceptNode", name: "Food", tv: { strength: 1.0, confidence: 0.9 } },
-  { id: "10", type: "InheritanceLink", name: "Mammal->Animal", outgoing: ["2", "1"] },
-  { id: "11", type: "InheritanceLink", name: "Cat->Mammal", outgoing: ["3", "2"] },
-  { id: "12", type: "InheritanceLink", name: "Dog->Mammal", outgoing: ["4", "2"] },
-  { id: "13", type: "InheritanceLink", name: "Human->Mammal", outgoing: ["5", "2"] },
-  { id: "14", type: "InheritanceLink", name: "Socrates->Human", outgoing: ["6", "5"] },
-];
-
-const ATOM_TYPE_COLORS: Record<string, string> = {
-  ConceptNode: "#00f0ff",
-  PredicateNode: "#bd00ff",
-  InheritanceLink: "#00ff88",
-  EvaluationLink: "#ffaa00",
-  ListLink: "#ff6b6b",
-  default: "#888888",
-};
-
 export default function AtomSpaceExplorer() {
-  const { isConnected, sendMessage, lastMessage } = useCogServer();
-  const [atoms, setAtoms] = useState<Atom[]>(SAMPLE_ATOMS);
+  const { isConnected } = useCogServer();
+  const [replState, setReplState] = useState<ReplState>(() => createReplState());
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedAtom, setSelectedAtom] = useState<Atom | null>(null);
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
   const [replHistory, setReplHistory] = useState<ReplHistoryItem[]>([
     { type: "output", content: "OpenCog Scheme REPL ready.\nType (help) for available commands.", timestamp: new Date() },
   ]);
@@ -86,41 +61,20 @@ export default function AtomSpaceExplorer() {
   const fgRef = useRef<any>(null);
   const replEndRef = useRef<HTMLDivElement>(null);
 
-  // Get unique atom types
-  const atomTypes = Array.from(new Set(atoms.map((a) => a.type)));
+  // Derive atoms from REPL state
+  const atoms = replState.atoms;
 
-  // Filter atoms based on search and type
-  const filteredAtoms = atoms.filter((atom) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      atom.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      atom.type.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === null || atom.type === selectedType;
-    return matchesSearch && matchesType;
-  });
+  // Get unique atom types using shared utility
+  const atomTypes = getAtomTypes(atoms);
 
-  // Build graph data from atoms
-  useEffect(() => {
-    const nodes = atoms
-      .filter((a) => !a.type.includes("Link"))
-      .map((atom) => ({
-        id: atom.id,
-        group: atomTypes.indexOf(atom.type),
-        val: 10,
-        name: atom.name,
-        type: atom.type,
-      }));
+  // Filter atoms using shared utility
+  const filteredAtoms = filterAtoms(atoms, searchQuery, selectedType);
 
-    const links = atoms
-      .filter((a) => a.type.includes("Link") && a.outgoing)
-      .map((atom) => ({
-        source: atom.outgoing![0],
-        target: atom.outgoing![1],
-        type: atom.type,
-      }));
+  // Build graph data using shared utility
+  const graphData = buildGraphData(atoms);
 
-    setGraphData({ nodes, links });
-  }, [atoms]);
+  // Create atoms map for lookups
+  const atomsMap = createAtomsMap(atoms);
 
   // Scroll to bottom of REPL
   useEffect(() => {
@@ -139,97 +93,23 @@ export default function AtomSpaceExplorer() {
     setReplInput("");
     setIsExecuting(true);
 
-    // Simulate execution (in real implementation, this would send to CogServer)
+    // Execute using shared REPL utilities
     setTimeout(() => {
-      let output: ReplHistoryItem;
+      const result = executeSchemeCommand(input, replState);
 
-      // Parse and simulate some basic Scheme commands
-      if (input === "(help)") {
-        output = {
-          type: "output",
-          content: `Available commands:
-  (cog-atomspace)     - Get current atomspace
-  (cog-get-atoms 'ConceptNode) - List all ConceptNodes
-  (Concept "name")    - Create/get ConceptNode
-  (Inheritance A B)   - Create InheritanceLink
-  (count-all)         - Count all atoms
-  (clear)             - Clear atomspace`,
-          timestamp: new Date(),
-        };
-      } else if (input === "(count-all)") {
-        output = {
-          type: "output",
-          content: `Atom count: ${atoms.length}`,
-          timestamp: new Date(),
-        };
-      } else if (input === "(cog-atomspace)") {
-        output = {
-          type: "output",
-          content: `#<AtomSpace addr: 0x55d433c78480>`,
-          timestamp: new Date(),
-        };
-      } else if (input.startsWith("(cog-get-atoms")) {
-        const typeMatch = input.match(/'(\w+)/);
-        const type = typeMatch ? typeMatch[1] : "ConceptNode";
-        const matchingAtoms = atoms.filter((a) => a.type === type);
-        output = {
-          type: "output",
-          content: matchingAtoms.length > 0
-            ? matchingAtoms.map((a) => `(${a.type} "${a.name}")`).join("\n")
-            : `No atoms of type ${type} found.`,
-          timestamp: new Date(),
-        };
-      } else if (input.startsWith("(Concept")) {
-        const nameMatch = input.match(/"([^"]+)"/);
-        if (nameMatch) {
-          const name = nameMatch[1];
-          const existing = atoms.find((a) => a.type === "ConceptNode" && a.name === name);
-          if (existing) {
-            output = {
-              type: "output",
-              content: `(ConceptNode "${name}")`,
-              timestamp: new Date(),
-            };
-          } else {
-            const newAtom: Atom = {
-              id: String(atoms.length + 1),
-              type: "ConceptNode",
-              name,
-              tv: { strength: 1.0, confidence: 0.9 },
-            };
-            setAtoms((prev) => [...prev, newAtom]);
-            output = {
-              type: "output",
-              content: `Created: (ConceptNode "${name}")`,
-              timestamp: new Date(),
-            };
-          }
-        } else {
-          output = {
-            type: "error",
-            content: "Syntax error: expected (Concept \"name\")",
-            timestamp: new Date(),
-          };
-        }
-      } else if (input === "(clear)") {
-        setAtoms(SAMPLE_ATOMS);
-        output = {
-          type: "output",
-          content: "AtomSpace cleared and reset to sample data.",
-          timestamp: new Date(),
-        };
-      } else {
-        output = {
-          type: "error",
-          content: `Unknown command or syntax error: ${input}`,
-          timestamp: new Date(),
-        };
-      }
+      // Force re-render with updated state
+      setReplState({ ...replState });
+
+      const output: ReplHistoryItem = {
+        type: result.success ? "output" : "error",
+        content: result.output,
+        timestamp: new Date(),
+      };
 
       setReplHistory((prev) => [...prev, output]);
       setIsExecuting(false);
-    }, 300);
-  }, [replInput, atoms]);
+    }, 100);
+  }, [replInput, replState]);
 
   // Handle keyboard events in REPL
   const handleReplKeyDown = (e: React.KeyboardEvent) => {
@@ -239,8 +119,12 @@ export default function AtomSpaceExplorer() {
     }
   };
 
-  const getNodeColor = (node: any) => {
-    return ATOM_TYPE_COLORS[node.type] || ATOM_TYPE_COLORS.default;
+  // Reset to initial state
+  const handleReset = () => {
+    setReplState(createReplState());
+    setSelectedAtom(null);
+    setSearchQuery("");
+    setSelectedType(null);
   };
 
   return (
@@ -261,7 +145,7 @@ export default function AtomSpaceExplorer() {
             <Badge variant={isConnected ? "default" : "secondary"} className="font-mono">
               {isConnected ? "CONNECTED" : "OFFLINE MODE"}
             </Badge>
-            <Button variant="outline" size="sm" onClick={() => setAtoms(SAMPLE_ATOMS)}>
+            <Button variant="outline" size="sm" onClick={handleReset}>
               <RefreshCw className="w-4 h-4 mr-2" />
               RESET
             </Button>
@@ -301,8 +185,8 @@ export default function AtomSpaceExplorer() {
                   onClick={() => setSelectedType(type)}
                   className="font-mono text-xs"
                   style={{
-                    borderColor: ATOM_TYPE_COLORS[type] || ATOM_TYPE_COLORS.default,
-                    color: selectedType === type ? undefined : ATOM_TYPE_COLORS[type],
+                    borderColor: getAtomColor(type),
+                    color: selectedType === type ? undefined : getAtomColor(type),
                   }}
                 >
                   {type.replace("Node", "").replace("Link", "")} (
@@ -330,7 +214,7 @@ export default function AtomSpaceExplorer() {
                         <div className="flex items-center gap-2">
                           <div
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: ATOM_TYPE_COLORS[atom.type] || ATOM_TYPE_COLORS.default }}
+                            style={{ backgroundColor: getAtomColor(atom.type) }}
                           />
                           <span className="font-mono text-sm font-medium">{atom.name}</span>
                         </div>
@@ -389,7 +273,7 @@ export default function AtomSpaceExplorer() {
                       ref={fgRef}
                       graphData={graphData}
                       nodeLabel="name"
-                      nodeColor={getNodeColor}
+                      nodeColor={(node: any) => getAtomColor(node.type)}
                       linkDirectionalArrowLength={3.5}
                       linkDirectionalArrowRelPos={1}
                       backgroundColor="rgba(0,0,0,0)"
@@ -499,7 +383,7 @@ export default function AtomSpaceExplorer() {
                         <div className="flex items-center gap-3">
                           <div
                             className="w-4 h-4 rounded"
-                            style={{ backgroundColor: ATOM_TYPE_COLORS[selectedAtom.type] || ATOM_TYPE_COLORS.default }}
+                            style={{ backgroundColor: getAtomColor(selectedAtom.type) }}
                           />
                           <h3 className="text-xl font-mono font-bold">{selectedAtom.name}</h3>
                         </div>
@@ -544,7 +428,7 @@ export default function AtomSpaceExplorer() {
                           <label className="text-xs text-muted-foreground font-mono uppercase">Outgoing Set</label>
                           <div className="space-y-2">
                             {selectedAtom.outgoing.map((outId) => {
-                              const outAtom = atoms.find((a) => a.id === outId);
+                              const outAtom = atomsMap.get(outId);
                               return (
                                 <div
                                   key={outId}
@@ -566,14 +450,7 @@ export default function AtomSpaceExplorer() {
                       <div className="space-y-2">
                         <label className="text-xs text-muted-foreground font-mono uppercase">Scheme Representation</label>
                         <div className="p-4 bg-[#05080a] border border-border font-mono text-sm text-primary">
-                          {selectedAtom.outgoing
-                            ? `(${selectedAtom.type}\n  ${selectedAtom.outgoing
-                                .map((id) => {
-                                  const a = atoms.find((atom) => atom.id === id);
-                                  return a ? `(${a.type} "${a.name}")` : id;
-                                })
-                                .join("\n  ")})`
-                            : `(${selectedAtom.type} "${selectedAtom.name}")`}
+                          {atomToScheme(selectedAtom, atomsMap)}
                         </div>
                       </div>
                     </div>
