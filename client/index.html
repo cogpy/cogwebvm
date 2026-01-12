@@ -6,10 +6,65 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>OpenCog WebVM Test Results Dashboard</title>    
+    <title>Agent-Zero WebVM | CogPy</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Agent-Zero running in WebVM - Autonomous AI agent in browser-based Linux virtualization powered by CheerpX" />
+    <meta name="keywords" content="Agent-Zero, WebVM, CheerpX, AI Agent, Browser Linux, WebAssembly, OpenCog" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Agent-Zero WebVM | CogPy" />
+    <meta property="og:description" content="Autonomous AI agent running in browser-based Linux virtualization" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Agent-Zero WebVM | CogPy" />
+    <meta name="twitter:description" content="Autonomous AI agent running in browser-based Linux virtualization" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Agent-Zero WebVM" />
+    <meta name="apple-mobile-web-app-title" content="Agent-Zero" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet" />
+    
+    <!-- Service Worker for COOP/COEP headers (required for SharedArrayBuffer) -->
+    <script>
+      // Register service worker for cross-origin isolation
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/serviceWorker.js', { scope: '/' })
+            .then(function(registration) {
+              console.log('ServiceWorker registered:', registration.scope);
+              // Reload if not yet controlled
+              if (!navigator.serviceWorker.controller) {
+                console.log('Reloading for service worker control...');
+                // Only reload once
+                if (!sessionStorage.getItem('sw-reload')) {
+                  sessionStorage.setItem('sw-reload', 'true');
+                  window.location.reload();
+                }
+              }
+            })
+            .catch(function(error) {
+              console.warn('ServiceWorker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    
+    <!-- xterm.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
   </head>
 
   <body>

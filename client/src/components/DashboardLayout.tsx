@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { Terminal, Activity, Network, Server, Cpu, Database, FolderOpen } from "lucide-react";
+import { Terminal, Activity, Network, Server, Cpu, Database, FolderOpen, Bot, Monitor } from "lucide-react";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,6 +12,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const navItems = [
     { href: "/", label: "OVERVIEW", icon: Activity },
+    { href: "/agent-zero", label: "AGENT-ZERO", icon: Bot },
+    { href: "/webvm", label: "WEBVM", icon: Monitor },
     { href: "/files", label: "FILE STORAGE", icon: FolderOpen },
     { href: "/python", label: "PYTHON BINDINGS", icon: Terminal },
     { href: "/guile", label: "GUILE SCHEME", icon: Cpu },
@@ -32,8 +34,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Network className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-mono font-bold text-lg tracking-tighter text-primary">OPENCOG</h1>
-              <p className="text-xs text-muted-foreground font-mono">DASHBOARD v1.0</p>
+              <h1 className="font-mono font-bold text-lg tracking-tighter text-primary">COGWEBVM</h1>
+              <p className="text-xs text-muted-foreground font-mono">AGENT-ZERO v1.0</p>
             </div>
           </div>
         </div>
@@ -41,6 +43,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location === item.href;
+            const isHighlighted = item.href === "/agent-zero" || item.href === "/webvm";
             return (
               <Link key={item.href} href={item.href}>
                 <div
@@ -48,6 +51,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     "flex items-center gap-3 px-4 py-3 text-sm font-mono transition-all cursor-pointer border border-transparent",
                     isActive
                       ? "bg-primary/10 text-primary border-primary/50 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+                      : isHighlighted
+                      ? "text-primary/80 hover:text-primary hover:bg-primary/5 hover:border-primary/30"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:border-muted-foreground/20"
                   )}
                 >
@@ -67,15 +72,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <span className="text-green-500">ONLINE</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">UPTIME:</span>
-              <span>00:42:15</span>
+              <span className="text-muted-foreground">RUNTIME:</span>
+              <span>CheerpX</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">CPU:</span>
-              <span>12%</span>
+              <span className="text-muted-foreground">MODE:</span>
+              <span className="text-primary">BROWSER</span>
             </div>
             <div className="w-full bg-muted h-1 mt-2">
-              <div className="bg-primary h-full w-[12%]"></div>
+              <div className="bg-primary h-full w-[100%] animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -89,7 +94,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span>/</span>
             <span className="text-foreground">WEBVM_ENV</span>
             <span>/</span>
-            <span className="text-primary uppercase">{location === "/" ? "OVERVIEW" : location.substring(1)}</span>
+            <span className="text-primary uppercase">{location === "/" ? "OVERVIEW" : location.substring(1).replace("-", "_")}</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/30 text-green-500 text-xs font-mono">

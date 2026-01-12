@@ -8,6 +8,8 @@ import { CogServerProvider } from "./contexts/CogServerContext";
 import Home from "./pages/Home";
 import FileManager from "./pages/FileManager";
 import AtomSpaceExplorer from "./pages/AtomSpaceExplorer";
+import AgentZero from "./pages/AgentZero";
+import WebVMPage from "./pages/WebVM";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -16,6 +18,8 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/files"} component={FileManager} />
       <Route path={"/atomspace"} component={AtomSpaceExplorer} />
+      <Route path={"/agent-zero"} component={AgentZero} />
+      <Route path={"/webvm"} component={WebVMPage} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
