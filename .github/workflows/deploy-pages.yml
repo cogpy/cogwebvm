@@ -39,6 +39,7 @@ jobs:
         run: pnpm run build
         env:
           NODE_ENV: production
+          VITE_STATIC_DEPLOYMENT: "true"
           VITE_ANALYTICS_ENDPOINT: ""
           VITE_ANALYTICS_WEBSITE_ID: ""
 
