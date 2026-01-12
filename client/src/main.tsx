@@ -18,13 +18,32 @@ const queryClient = new QueryClient({
   },
 });
 
-// For static deployment, we don't need tRPC
+// For static deployment, we use a mock tRPC provider
 if (isStaticDeployment) {
-  createRoot(document.getElementById("root")!).render(
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  );
+  import("@/lib/trpc").then(({ trpc }) => {
+    import("@trpc/client").then(({ httpBatchLink }) => {
+      import("superjson").then(({ default: superjson }) => {
+        // Create a dummy client that won't actually make requests
+        const trpcClient = trpc.createClient({
+          links: [
+            httpBatchLink({
+              url: "/api/trpc",
+              transformer: superjson,
+              fetch: () => Promise.resolve(new Response(JSON.stringify([{ result: { data: null } }]))),
+            }),
+          ],
+        });
+
+        createRoot(document.getElementById("root")!).render(
+          <trpc.Provider client={trpcClient} queryClient={queryClient}>
+            <QueryClientProvider client={queryClient}>
+              <App />
+            </QueryClientProvider>
+          </trpc.Provider>
+        );
+      });
+    });
+  });
 } else {
   // Dynamic import for tRPC only when needed
   Promise.all([
