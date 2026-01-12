@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, Router as WouterRouter } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CogServerProvider } from "./contexts/CogServerContext";
@@ -11,7 +11,10 @@ import AtomSpaceExplorer from "./pages/AtomSpaceExplorer";
 import AgentZero from "./pages/AgentZero";
 import WebVMPage from "./pages/WebVM";
 
-function Router() {
+// Get base path from Vite config
+const base = import.meta.env.BASE_URL || '/';
+
+function Routes() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
@@ -41,8 +44,10 @@ function App() {
       >
         <CogServerProvider>
           <TooltipProvider>
-          <Toaster />
-          <Router />
+            <Toaster />
+            <WouterRouter base={base.endsWith('/') ? base.slice(0, -1) : base}>
+              <Routes />
+            </WouterRouter>
           </TooltipProvider>
         </CogServerProvider>
       </ThemeProvider>
