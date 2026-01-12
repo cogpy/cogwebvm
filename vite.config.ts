@@ -9,6 +9,8 @@ const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(
 
 export default defineConfig({
   plugins,
+  // Base path for GitHub Pages deployment
+  base: '/cogwebvm/',
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
