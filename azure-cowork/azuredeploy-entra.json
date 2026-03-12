@@ -1,0 +1,307 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Azure VM blueprint for Claude Cowork with nested virtualization and Entra ID join. Extended variant that automatically joins the VM to the ReZonAi tenant.",
+    "author": "Dan - Cowork Cloud Blueprint + ReZonAi Integration",
+    "created": "2026-03-12"
+  },
+  "parameters": {
+    "vmName": {
+      "type": "string",
+      "defaultValue": "cowork-vm",
+      "metadata": { "description": "Name of the virtual machine" }
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "coworkadmin",
+      "metadata": { "description": "Admin username for the VM" }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": { "description": "Admin password (min 12 chars, must include upper, lower, number, special)" }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D4s_v5",
+      "allowedValues": [
+        "Standard_D4s_v3",
+        "Standard_D4s_v4",
+        "Standard_D4s_v5",
+        "Standard_D8s_v5",
+        "Standard_E4s_v5",
+        "Standard_E8s_v5"
+      ],
+      "metadata": { "description": "VM size — all listed sizes support nested virtualization." }
+    },
+    "osDiskSizeGB": {
+      "type": "int",
+      "defaultValue": 256,
+      "allowedValues": [128, 256, 512, 1024],
+      "metadata": { "description": "OS disk size in GB." }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "southafricanorth",
+      "metadata": { "description": "Azure region." }
+    },
+    "enableAutoShutdown": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": { "description": "Enable auto-shutdown at 23:00 SAST" }
+    },
+    "autoShutdownTime": {
+      "type": "string",
+      "defaultValue": "2300",
+      "metadata": { "description": "Auto-shutdown time in 24h format" }
+    },
+    "autoShutdownTimezone": {
+      "type": "string",
+      "defaultValue": "South Africa Standard Time",
+      "metadata": { "description": "Timezone for auto-shutdown" }
+    },
+    "entraJoin": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": { "description": "Join VM to Entra ID tenant (requires Azure AD Premium or Entra ID P1)" }
+    },
+    "entraTenantId": {
+      "type": "string",
+      "defaultValue": "6a5b8c74-51fa-4950-9a13-0fe9cfad1134",
+      "metadata": { "description": "Entra ID tenant ID for device join" }
+    }
+  },
+  "variables": {
+    "vnetName": "[concat(parameters('vmName'), '-vnet')]",
+    "subnetName": "default",
+    "nsgName": "[concat(parameters('vmName'), '-nsg')]",
+    "publicIPName": "[concat(parameters('vmName'), '-pip')]",
+    "nicName": "[concat(parameters('vmName'), '-nic')]",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('nsgName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-RDP",
+            "properties": {
+              "priority": 1000,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "description": "RDP access — restrict sourceAddressPrefix to your IP in production"
+            }
+          },
+          {
+            "name": "Allow-HTTPS-Out",
+            "properties": {
+              "priority": 1000,
+              "direction": "Outbound",
+              "access": "Allow",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "description": "HTTPS outbound for Claude Desktop, Graph API, etc."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('publicIPName')]",
+      "location": "[parameters('location')]",
+      "sku": { "name": "Standard" },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('vmName')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('vnetName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "addressSpace": { "addressPrefixes": ["10.0.0.0/16"] },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.0.0.0/24",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('nicName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": { "id": "[variables('subnetRef')]" },
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('vmName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "securityProfile": {
+          "securityType": "Standard"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsDesktop",
+            "offer": "windows-11",
+            "sku": "win11-24h2-pro",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+            "managedDisk": { "storageAccountType": "Premium_LRS" },
+            "diskSizeGB": "[parameters('osDiskSizeGB')]",
+            "name": "[concat(parameters('vmName'), '-osdisk')]"
+          }
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true,
+            "patchSettings": {
+              "patchMode": "AutomaticByOS"
+            }
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": { "enabled": true }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('entraJoin')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2024-03-01",
+      "name": "[concat(parameters('vmName'), '/AADLoginForWindows')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.ActiveDirectory",
+        "type": "AADLoginForWindows",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "mdmId": ""
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+      ]
+    },
+    {
+      "condition": "[parameters('enableAutoShutdown')]",
+      "type": "Microsoft.DevTestLab/schedules",
+      "apiVersion": "2018-09-15",
+      "name": "[concat('shutdown-computevm-', parameters('vmName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "status": "Enabled",
+        "taskType": "ComputeVmShutdownTask",
+        "dailyRecurrence": {
+          "time": "[parameters('autoShutdownTime')]"
+        },
+        "timeZoneId": "[parameters('autoShutdownTimezone')]",
+        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
+        "notificationSettings": {
+          "status": "Enabled",
+          "timeInMinutes": 15,
+          "notificationLocale": "en"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "vmPublicIP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))).ipAddress]"
+    },
+    "vmFQDN": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))).dnsSettings.fqdn]"
+    },
+    "rdpCommand": {
+      "type": "string",
+      "value": "[concat('mstsc /v:', reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))).dnsSettings.fqdn)]"
+    },
+    "vmSize": {
+      "type": "string",
+      "value": "[parameters('vmSize')]"
+    },
+    "managedIdentityPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Compute/virtualMachines', parameters('vmName')), '2024-03-01', 'Full').identity.principalId]"
+    },
+    "securityNote": {
+      "type": "string",
+      "value": "IMPORTANT: Restrict NSG RDP rule sourceAddressPrefix to your IP address."
+    }
+  }
+}
