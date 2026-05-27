@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createFile, getUserFiles, deleteFile } from "../fileDb";
+import { storagePut } from "../storage";
 
 // ============================================================================
 // Unit tests for cogwebvm tRPC routers
@@ -64,8 +66,10 @@ describe("Auth Router", () => {
 });
 
 describe("File Operations Logic", () => {
-  const { createFile, getUserFiles, deleteFile } = require("../fileDb");
-  const { storagePut } = require("../storage");
+  const mockedCreateFile = vi.mocked(createFile);
+  const mockedGetUserFiles = vi.mocked(getUserFiles);
+  const mockedDeleteFile = vi.mocked(deleteFile);
+  const mockedStoragePut = vi.mocked(storagePut);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,10 +77,10 @@ describe("File Operations Logic", () => {
 
   describe("getUserFiles", () => {
     it("should return empty array when user has no files", async () => {
-      getUserFiles.mockResolvedValue([]);
-      const result = await getUserFiles(1);
+      mockedGetUserFiles.mockResolvedValue([]);
+      const result = await mockedGetUserFiles(1);
       expect(result).toEqual([]);
-      expect(getUserFiles).toHaveBeenCalledWith(1);
+      expect(mockedGetUserFiles).toHaveBeenCalledWith(1);
     });
 
     it("should return list of files for a user", async () => {
@@ -84,8 +88,8 @@ describe("File Operations Logic", () => {
         { id: "1", name: "file1.txt", path: "/file1.txt", createdAt: new Date(), updatedAt: new Date() },
         { id: "2", name: "file2.txt", path: "/file2.txt", createdAt: new Date(), updatedAt: new Date() },
       ];
-      getUserFiles.mockResolvedValue(mockFiles);
-      const result = await getUserFiles(1);
+      mockedGetUserFiles.mockResolvedValue(mockFiles as any);
+      const result = await mockedGetUserFiles(1);
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe("file1.txt");
     });
@@ -94,27 +98,27 @@ describe("File Operations Logic", () => {
   describe("createFile", () => {
     it("should create a file with correct metadata", async () => {
       const mockFile = { id: "mock-nanoid-id", name: "newfile.txt", userId: 1, createdAt: new Date() };
-      createFile.mockResolvedValue(mockFile);
-      const result = await createFile({ name: "newfile.txt", userId: 1 });
-      expect(result.name).toBe("newfile.txt");
-      expect(createFile).toHaveBeenCalled();
+      mockedCreateFile.mockResolvedValue(mockFile as any);
+      const result = await mockedCreateFile({ name: "newfile.txt", userId: 1 } as any);
+      expect((result as any).name).toBe("newfile.txt");
+      expect(mockedCreateFile).toHaveBeenCalled();
     });
   });
 
   describe("deleteFile", () => {
     it("should delete a file by id", async () => {
-      deleteFile.mockResolvedValue({ success: true });
-      const result = await deleteFile("file-id-1");
-      expect(result.success).toBe(true);
-      expect(deleteFile).toHaveBeenCalledWith("file-id-1");
+      mockedDeleteFile.mockResolvedValue({ success: true } as any);
+      const result = await mockedDeleteFile("file-id-1" as any, 1 as any);
+      expect((result as any).success).toBe(true);
+      expect(mockedDeleteFile).toHaveBeenCalledWith("file-id-1", 1);
     });
   });
 
   describe("storagePut", () => {
     it("should upload content to storage", async () => {
-      storagePut.mockResolvedValue(undefined);
-      await storagePut("test-key", Buffer.from("test content"));
-      expect(storagePut).toHaveBeenCalledWith("test-key", expect.any(Buffer));
+      mockedStoragePut.mockResolvedValue(undefined as any);
+      await mockedStoragePut("test-key", Buffer.from("test content"));
+      expect(mockedStoragePut).toHaveBeenCalledWith("test-key", expect.any(Buffer));
     });
   });
 });

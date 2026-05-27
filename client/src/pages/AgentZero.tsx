@@ -110,7 +110,7 @@ export default function AgentZero() {
       
       addBootLog('Mounting filesystems...');
       
-      const mountPoints = [
+      const mountPoints: any[] = [
         { type: "ext2", dev: overlayDevice, path: "/" },
         { type: "dir", dev: webDevice, path: "/web" },
         { type: "dir", dev: dataDevice, path: "/data" },
@@ -155,9 +155,9 @@ export default function AgentZero() {
       termRef.current = term;
       
       // Set up console callbacks
-      const writeData = (buf: ArrayBuffer, vt: number) => {
+      const writeData = (buf: Uint8Array<ArrayBufferLike>, vt: number) => {
         if (vt === 1) {
-          term.write(new Uint8Array(buf));
+          term.write(buf);
         }
       };
       
@@ -170,19 +170,21 @@ export default function AgentZero() {
       });
       
       // Register activity callbacks
-      cx.registerCallback("cpuActivity", (state: string) => {
+      cx.registerCallback("cpuActivity", (state: string | number) => {
+        const activityState = String(state);
         setVmStatus(prev => ({
           ...prev,
-          cpuUsage: state !== "ready" ? Math.min(prev.cpuUsage + 10, 100) : Math.max(prev.cpuUsage - 5, 0)
+          cpuUsage: activityState !== "ready" ? Math.min(prev.cpuUsage + 10, 100) : Math.max(prev.cpuUsage - 5, 0)
         }));
       });
       
-      cx.registerCallback("diskActivity", (state: string) => {
+      cx.registerCallback("diskActivity", (_state: string | number) => {
         // Track disk activity
       });
       
-      cx.registerCallback("diskLatency", (latency: number) => {
-        setVmStatus(prev => ({ ...prev, diskLatency: latency }));
+      cx.registerCallback("diskLatency", (latency: string | number) => {
+        const numericLatency = typeof latency === "number" ? latency : Number(latency) || 0;
+        setVmStatus(prev => ({ ...prev, diskLatency: numericLatency }));
       });
       
       addBootLog('Starting shell...');

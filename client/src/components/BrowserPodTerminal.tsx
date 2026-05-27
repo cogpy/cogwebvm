@@ -40,17 +40,20 @@ export default function BrowserPodTerminal({
     addLog('Starting BrowserPod runtime...');
 
     try {
-      // Dynamically import BrowserPod
-      // Note: In production, this would use the actual BrowserPod package
-      const { BrowserPod } = await import('@leaningtech/browserpod').catch(() => {
-        // Fallback to loading from CDN if package not available
-        return new Promise((resolve) => {
+      // Dynamically import BrowserPod, falling back to the CDN runtime when the package is unavailable.
+      let BrowserPod: any;
+      try {
+        ({ BrowserPod } = await import('@leaningtech/browserpod') as any);
+      } catch {
+        await new Promise<void>((resolve, reject) => {
           const script = document.createElement('script');
           script.src = 'https://rt.browserpod.io/0.9.7/browserpod.js';
-          script.onload = () => resolve({ BrowserPod: (window as any).BrowserPod });
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('BrowserPod CDN runtime failed to load'));
           document.head.appendChild(script);
         });
-      });
+        BrowserPod = (window as any).BrowserPod;
+      }
 
       if (!BrowserPod) {
         throw new Error('BrowserPod failed to load');

@@ -153,7 +153,7 @@ const WebVMTerminal = forwardRef<WebVMTerminalRef, WebVMTerminalProps>(({
       const dataDevice = await CheerpX.DataDevice.create();
       
       // Mount points
-      const mountPoints = [
+      const mountPoints: any[] = [
         { type: "ext2", dev: overlayDevice, path: "/" },
         { type: "dir", dev: webDevice, path: "/web" },
         { type: "dir", dev: dataDevice, path: "/data" },
@@ -171,13 +171,14 @@ const WebVMTerminal = forwardRef<WebVMTerminalRef, WebVMTerminalProps>(({
       cxRef.current = cx;
       
       // Register callbacks
-      cx.registerCallback("cpuActivity", (state: string) => {
-        cpuActivityEventsRef.current.push({ t: Date.now(), state });
+      cx.registerCallback("cpuActivity", (state: string | number) => {
+        cpuActivityEventsRef.current.push({ t: Date.now(), state: String(state) });
         setStats(prev => ({ ...prev, cpuUsage: computeCpuActivity() }));
       });
       
-      cx.registerCallback("diskLatency", (latency: number) => {
-        setStats(prev => ({ ...prev, diskLatency: Math.ceil(latency) }));
+      cx.registerCallback("diskLatency", (latency: string | number) => {
+        const numericLatency = typeof latency === "number" ? latency : Number(latency) || 0;
+        setStats(prev => ({ ...prev, diskLatency: Math.ceil(numericLatency) }));
       });
       
       cx.registerCallback("processCreated", () => {
@@ -241,9 +242,9 @@ const WebVMTerminal = forwardRef<WebVMTerminalRef, WebVMTerminalProps>(({
       termRef.current = term;
       
       // Set up console I/O
-      const writeData = (buf: ArrayBuffer, vt: number) => {
+      const writeData = (buf: Uint8Array<ArrayBufferLike>, vt: number) => {
         if (vt === 1) {
-          term.write(new Uint8Array(buf));
+          term.write(buf);
         }
       };
       

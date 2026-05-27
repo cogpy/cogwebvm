@@ -92,7 +92,7 @@ export function getCrossOriginIsolationStatus(): {
 } {
   return {
     isolated: crossOriginIsolated,
-    coep: document.featurePolicy?.allowsFeature('cross-origin-isolated') ? 'require-corp' : null,
+    coep: crossOriginIsolated ? 'require-corp' : null,
     coop: crossOriginIsolated ? 'same-origin' : null
   };
 }
