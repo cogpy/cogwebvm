@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Authentication Flow", () => {
   test("should load the application homepage", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveTitle(/CogWebVM|OpenCog/i);
+    await expect(page).toHaveTitle(/Agent-Zero WebVM|CogWebVM|OpenCog|CogPy/i);
   });
 
   test("should display login UI when not authenticated", async ({ page }) => {

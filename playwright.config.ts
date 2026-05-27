@@ -21,5 +21,12 @@ export default defineConfig({
     command: "pnpm dev",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
+    env: {
+      ...process.env,
+      PORT: "5173",
+      OAUTH_SERVER_URL: process.env.OAUTH_SERVER_URL ?? "http://127.0.0.1:5173",
+      VITE_ANALYTICS_ENDPOINT: process.env.VITE_ANALYTICS_ENDPOINT ?? "",
+      VITE_ANALYTICS_WEBSITE_ID: process.env.VITE_ANALYTICS_WEBSITE_ID ?? "test",
+    },
   },
 });
